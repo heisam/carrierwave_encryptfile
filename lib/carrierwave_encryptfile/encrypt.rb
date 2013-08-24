@@ -1,7 +1,7 @@
 module CarrierWave
   module EncryptFile
 
-    class GibberishFileEncrypt
+    class Encryptor
 
       def initialize(secret_key)
         @cipher = Gibberish::AES.new(secret_key)
@@ -13,7 +13,7 @@ module CarrierWave
 
     end
 
-    class GibberishFileDecrypt
+    class Decryptor
 
       def initialize(secret_key)
         @cipher = Gibberish::AES.new(secret_key)

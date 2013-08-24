@@ -2,18 +2,21 @@ module CarrierWave
   module EncryptFile
     module Uploader
 
-      def self.encrypt_file(file, file_field, model=nil)
-        if !model.nil? && model.id.nil?
+      def self.encrypt_file(file, mounted_as, uploader_model)
+        if uploader_model && uploader_model.new_record?
           ext_file = file + ".x1"
           File.rename(file, ext_file)
+
           # use the same password for all versions
           if @password
-            model.send("#{file_field}_password=", @password)
+            uploader_model.send("#{mounted_as}_password=", @password)
           else
-            @password = model.send("#{file_field}_password=", SecureRandom.hex(32)) unless @password
+            @password = uploader_model.send("#{mounted_as}_password=", SecureRandom.hex(32))
           end
-          encryptor = CarrierWave::EncryptFile::GibberishFileEncrypt.new(@password)
+
+          encryptor = CarrierWave::EncryptFile::Encryptor.new(@password)
           encryptor.do(ext_file, file)
+
           File.unlink(ext_file)
           file
         end

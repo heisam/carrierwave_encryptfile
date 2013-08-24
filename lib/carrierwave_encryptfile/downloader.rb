@@ -4,28 +4,34 @@ module CarrierWave
 
       class << self
 
-        def call(uploaded_file, file_field, version=nil)
+        def call(uploader_model, mounted_as, version=nil)
           if version
-            downloader = uploaded_file.send(file_field.to_s).send(version)
+            downloader = uploader_model.send(mounted_as).send(version)
           else
-            downloader = uploaded_file.send(file_field.to_s)
+            downloader = uploader_model.send(mounted_as)
           end
 
-          file = nil
+          encrypted_file = nil
           begin
-            downloader.retrieve_from_store!(File.basename(uploaded_file.send(file_field.to_s).url))
-            file = downloader.file.path.to_s
+            downloader.retrieve_from_store!(File.basename(downloader.url))
+            encrypted_file = downloader.file.path
           rescue Exception => e
             Rails.logger.debug "Unable to retrieve file: #{e}"
           end
 
-          if File.exists? file
-            decrypted_file = Tempfile.new([ file, 'dec' ].compact.join("."))
-            decryptor = CarrierWave::EncryptFile::GibberishFileDecrypt.new(uploaded_file.send("#{file_field.to_s}_password"))
-            decryptor.do file, decrypted_file
-            return { :file => decrypted_file, :content_type => uploaded_file.send("#{file_field.to_s}_content_type") }
+          if File.exists? encrypted_file
+            decrypted_file = Tempfile.new([ encrypted_file, 'dec' ].compact.join("."))
+            password = uploader_model.send("#{mounted_as}_password")
+
+            decryptor = CarrierWave::EncryptFile::Decryptor.new(password)
+            decryptor.do(encrypted_file, decrypted_file)
+
+            return { 
+              :file => decrypted_file, 
+              :content_type => uploader_model.send("#{mounted_as}_content_type") 
+            }
           else
-            Rails.logger.debug "Unable to find the target file."
+            Rails.logger.debug "Unable to find file."
             nil
           end
         end

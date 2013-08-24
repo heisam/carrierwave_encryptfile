@@ -5,7 +5,6 @@ require 'carrierwave_encryptfile/version'
 
 Gem::Specification.new do |gem|
   gem.name          = "carrierwave_encryptfile"
-  gem.version       = "0.1.1"
   gem.version       = CarrierwaveEncryptfile::VERSION
   gem.authors       = ["Heiner Sameisky"]
   gem.email         = ["hei.sam@gmail.com"]
@@ -20,6 +19,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency('carrierwave')
-  #gem.add_dependency('gibberish2')
+  gem.add_dependency('gibberish')
+  
   gem.add_development_dependency('rspec')
 end
